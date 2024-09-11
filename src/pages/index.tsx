@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   createSmartAccountClient,
   BiconomySmartAccountV2,
@@ -19,7 +19,8 @@ export default function Home() {
   const [count, setCount] = useState<string | null>(null);
   const [txnHash, setTxnHash] = useState<string | null>(null);
   const [chainSelected, setChainSelected] = useState<number>(0);
-  const { login } = usePrivy();
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const { login, logout } = usePrivy();
   const { wallets } = useWallets();
 
   const chains = [
@@ -40,6 +41,19 @@ export default function Home() {
       explorerUrl: "https://www.oklink.com/amoy/tx/",
     },
   ];
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      const connected = await wallets[0].isConnected();
+      setIsConnected(connected);
+    };
+    if (wallets[0]) {
+      console.log("Wallets", wallets[0]);
+      checkConnection();
+    } else {
+      console.log("No Wallets Loaded");
+    }
+  }, [wallets, smartAccount]);
 
   const connect = async () => {
     try {
@@ -67,6 +81,7 @@ export default function Home() {
       const saAddress = await smartWallet.getAccountAddress();
       console.log("Smart Account Address", saAddress);
       setSmartAccountAddress(saAddress);
+      setIsConnected(true);
     } catch (error) {
       console.error(error);
     }
@@ -142,33 +157,35 @@ export default function Home() {
 
       {!smartAccount && (
         <>
-          <div className="flex flex-row justify-center items-center gap-4">
-            <div
-              className={`w-[8rem] h-[3rem] cursor-pointer rounded-lg flex flex-row justify-center items-center text-white ${
-                chainSelected == 0 ? "bg-orange-600" : "bg-black"
-              } border-2 border-solid border-orange-400`}
-              onClick={() => {
-                setChainSelected(0);
-              }}
-            >
-              Eth Sepolia
+          {isConnected && (
+            <div className="flex flex-row justify-center items-center gap-4">
+              <div
+                className={`w-[8rem] h-[3rem] cursor-pointer rounded-lg flex flex-row justify-center items-center text-white ${
+                  chainSelected == 0 ? "bg-orange-600" : "bg-black"
+                } border-2 border-solid border-orange-400`}
+                onClick={() => {
+                  setChainSelected(0);
+                }}
+              >
+                Eth Sepolia
+              </div>
+              <div
+                className={`w-[8rem] h-[3rem] cursor-pointer rounded-lg flex flex-row justify-center items-center text-white ${
+                  chainSelected == 1 ? "bg-orange-600" : "bg-black"
+                } bg-black border-2 border-solid border-orange-400`}
+                onClick={() => {
+                  setChainSelected(1);
+                }}
+              >
+                Poly Amoy
+              </div>
             </div>
-            <div
-              className={`w-[8rem] h-[3rem] cursor-pointer rounded-lg flex flex-row justify-center items-center text-white ${
-                chainSelected == 1 ? "bg-orange-600" : "bg-black"
-              } bg-black border-2 border-solid border-orange-400`}
-              onClick={() => {
-                setChainSelected(1);
-              }}
-            >
-              Poly Amoy
-            </div>
-          </div>
+          )}
           <button
             className="w-[10rem] h-[3rem] bg-orange-300 text-black font-bold rounded-lg"
             onClick={connect}
           >
-            Privy Sign in
+            {isConnected ? "Log In" : "Privy Sign in"}
           </button>
         </>
       )}
@@ -176,6 +193,16 @@ export default function Home() {
       {smartAccount && (
         <>
           {" "}
+          <button
+            className="w-[10rem] h-[3rem] bg-orange-300 text-black font-bold rounded-lg"
+            onClick={async () => {
+              logout();
+              console.log("Logged Out", await wallets[0].isConnected());
+              window.location.reload()
+            }}
+          >
+            Logout
+          </button>
           <span>Smart Account Address</span>
           <span>{smartAccountAddress}</span>
           <span>Network: {chains[chainSelected].name}</span>
