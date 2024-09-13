@@ -1,7 +1,8 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { PrivyProvider } from "@privy-io/react-auth";
-import {sepolia, polygonAmoy} from 'viem/chains';
+import { sepolia, polygonAmoy } from "viem/chains";
+import { ToastContainer } from "react-toastify";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
@@ -17,6 +18,8 @@ export default function App({ Component, pageProps }: AppProps) {
           loginMethods: ["email", "google", "twitter", "discord", "apple"], // <-- Add your supported login methods here
         }}
       >
+        <ToastContainer />
+
         <Component {...pageProps} />
       </PrivyProvider>
     </>

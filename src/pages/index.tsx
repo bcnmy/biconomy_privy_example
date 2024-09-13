@@ -88,6 +88,7 @@ export default function Home() {
   };
 
   const getCountId = async () => {
+    const toastId = toast("Getting Count", { autoClose: false });
     const contractAddress = chains[chainSelected].incrementCountContractAdd;
     const provider = new ethers.providers.JsonRpcProvider(
       chains[chainSelected].providerUrl
@@ -99,6 +100,11 @@ export default function Home() {
     );
     const countId = await contractInstance.getCount();
     setCount(countId.toString());
+    toast.update(toastId, {
+      render: "Successful",
+      type: "success",
+      autoClose: 5000,
+    });
   };
 
   const incrementCount = async () => {
@@ -158,34 +164,41 @@ export default function Home() {
       {!smartAccount && (
         <>
           {isConnected && (
-            <div className="flex flex-row justify-center items-center gap-4">
-              <div
-                className={`w-[8rem] h-[3rem] cursor-pointer rounded-lg flex flex-row justify-center items-center text-white ${
-                  chainSelected == 0 ? "bg-orange-600" : "bg-black"
-                } border-2 border-solid border-orange-400`}
-                onClick={() => {
-                  setChainSelected(0);
-                }}
-              >
-                Eth Sepolia
-              </div>
-              <div
-                className={`w-[8rem] h-[3rem] cursor-pointer rounded-lg flex flex-row justify-center items-center text-white ${
-                  chainSelected == 1 ? "bg-orange-600" : "bg-black"
-                } bg-black border-2 border-solid border-orange-400`}
-                onClick={() => {
-                  setChainSelected(1);
-                }}
-              >
-                Poly Amoy
+            <div className="flex flex-col justify-center items-center">
+              <span className="mb-4">
+                You are already logged in, please select the preferred Network
+                and Click on Next
+              </span>
+              <div className="flex flex-row justify-center items-center gap-4">
+                <div
+                  className={`w-[8rem] h-[3rem] cursor-pointer rounded-lg flex flex-row justify-center items-center text-white ${
+                    chainSelected == 0 ? "bg-orange-600" : "bg-black"
+                  } border-2 border-solid border-orange-400`}
+                  onClick={() => {
+                    setChainSelected(0);
+                  }}
+                >
+                  Eth Sepolia
+                </div>
+                <div
+                  className={`w-[8rem] h-[3rem] cursor-pointer rounded-lg flex flex-row justify-center items-center text-white ${
+                    chainSelected == 1 ? "bg-orange-600" : "bg-black"
+                  } bg-black border-2 border-solid border-orange-400`}
+                  onClick={() => {
+                    setChainSelected(1);
+                  }}
+                >
+                  Poly Amoy
+                </div>
               </div>
             </div>
           )}
+
           <button
             className="w-[10rem] h-[3rem] bg-orange-300 text-black font-bold rounded-lg"
             onClick={connect}
           >
-            {isConnected ? "Log In" : "Privy Sign in"}
+            {isConnected ? "Next" : "Privy Sign in"}
           </button>
         </>
       )}
@@ -193,19 +206,13 @@ export default function Home() {
       {smartAccount && (
         <>
           {" "}
-          <button
-            className="w-[10rem] h-[3rem] bg-orange-300 text-black font-bold rounded-lg"
-            onClick={async () => {
-              logout();
-              console.log("Logged Out", await wallets[0].isConnected());
-              window.location.reload()
-            }}
-          >
-            Logout
-          </button>
-          <span>Smart Account Address</span>
-          <span>{smartAccountAddress}</span>
-          <span>Network: {chains[chainSelected].name}</span>
+          <span>Selected Network: {chains[chainSelected].name}</span>
+          <span>Smart Account Address: {smartAccountAddress}</span>
+          <span className="bg-green-600 p-2 rounded-lg text-center border border-solid border-green-400 text-sm">
+            Note: This is a custom contract that we have defined for testing in
+            which we are simply increasing a variable count by calling the
+            increment function.
+          </span>
           <div className="flex flex-row justify-between items-start gap-8">
             <div className="flex flex-col justify-center items-center gap-4">
               <button
@@ -235,7 +242,17 @@ export default function Home() {
               )}
             </div>
           </div>
-          <span className="text-white">Open console to view console logs.</span>
+          <button
+            className="w-[10rem] h-[3rem] bg-orange-300 text-black font-bold rounded-lg"
+            onClick={async () => {
+              logout();
+              wallets[0].disconnect();
+              console.log("Logged Out", await wallets[0].isConnected());
+              window.location.reload();
+            }}
+          >
+            Logout
+          </button>
         </>
       )}
     </main>
